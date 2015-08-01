@@ -22,7 +22,7 @@ namespace Tracking.App
         private ContextMenu TrayMenu;
         private Monitor desktop;
         private bool IsRunning;
-        private WinApi _winApi;
+        private WinApi _winApi = new WinApi();
 
         public SystemTray()
         {
@@ -64,7 +64,6 @@ namespace Tracking.App
             _logger.Debug("Begin refresh");
             _winApi.RefreshNotificationArea();
             _logger.Debug("End refresh");
-
         }
 
         private void InitializeTrayIcon()

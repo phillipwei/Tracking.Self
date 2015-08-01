@@ -15,14 +15,15 @@ namespace Tracking.Core
 {
     public class Monitor
     {
-        private static readonly ILog Logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog _log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         //private readonly KeyboardHookListener keyboardHookManager;
         //private readonly MouseHookListener mouseHookManager;
 
+        private object _syncRoot = new object();
+
         private readonly TimeSpan ActivityThreshold = TimeSpan.FromMinutes(1);
-        private DateTime lastActivity = DateTime.Now;
-        private object syncRoot = new object();
+        private DateTime _lastActivity = DateTime.Now;
         private WinApi _winApi = new WinApi();
 
         public Monitor()
@@ -38,17 +39,18 @@ namespace Tracking.Core
 
         public void Start()
         {
-            System.Threading.Timer timer = new System.Threading.Timer((Object stateInfo) => { RecordActivity(); }, null, TimeSpan.Zero, ActivityThreshold);
+            var timer = new System.Threading.Timer((Object stateInfo) => { RecordActivity(); }, 
+                null, TimeSpan.Zero, ActivityThreshold);
         }
 
         public void RecordActivity()
         {
             try
             {
-                lock (syncRoot)
+                lock (_syncRoot)
                 {
                     // Skip if there's been no activity.
-                    if (DateTime.Now > lastActivity + ActivityThreshold)
+                    if (DateTime.Now > _lastActivity + ActivityThreshold)
                     {
                         return;
                     }
@@ -56,7 +58,12 @@ namespace Tracking.Core
 
                 using (Bitmap image = _winApi.CaptureDesktop())
                 {
-                    string fileTime = DateTime.Now.ToString("yyyy.MM.dd__HH.mm.ss.ffff");
+                    var fileTime = DateTime.Now.ToString("yyyy.MM.dd__HH.mm.ss.ffff");
+                    var filePath = Path.Combine(@"P:\Temp\Tracking.Self", fileTime + ".png");
+                    image.Save(filePath);
+                    _log.InfoFormat("RecordActivity: Screen Shot saved to {0}", filePath);
+
+                    /*
                     using (MemoryStream memoryStream = new MemoryStream())
                     {
                         var fields = new System.Collections.Specialized.NameValueCollection();
@@ -64,7 +71,6 @@ namespace Tracking.Core
                         image.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Png);
                         memoryStream.Position = 0;
                         var password = "???";
-                        // image.Save(fileTime + ".png");
                         Network.HttpAuthenticatedFileUpload(
                             "http://localhost:5000/api/upload",
                             "phillipwei@gmail.com",
@@ -76,11 +82,12 @@ namespace Tracking.Core
                             memoryStream);
                         // File.OpenRead(fileTime + ".png"));
                     }
+                    */
                 }
             }
             catch (Exception e)
             {
-                Logger.Fatal(e.Message + e.StackTrace);
+                _log.Fatal(e.Message + e.StackTrace);
             }
         }
 
@@ -91,25 +98,25 @@ namespace Tracking.Core
 
         private void MouseMove(object sender, MouseEventArgs e)
         {
-            lock (syncRoot)
+            lock (_syncRoot)
             {
-                lastActivity = DateTime.Now;
+                _lastActivity = DateTime.Now;
             }
         }
 
         private void MouseDown(object sender, MouseEventArgs e)
         {
-            lock (syncRoot)
+            lock (_syncRoot)
             {
-                lastActivity = DateTime.Now;
+                _lastActivity = DateTime.Now;
             }
         }
 
         private void KeyDown(object sender, KeyEventArgs e)
         {
-            lock (syncRoot)
+            lock (_syncRoot)
             {
-                lastActivity = DateTime.Now;
+                _lastActivity = DateTime.Now;
             }
         }
     }
