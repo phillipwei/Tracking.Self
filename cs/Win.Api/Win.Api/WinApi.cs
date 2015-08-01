@@ -101,6 +101,17 @@ namespace Win.Api
             return bmp;
         }
 
+        public Bitmap CaptureDesktop()
+        {
+            Bitmap image = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
+            using (Graphics gfx = Graphics.FromImage(image))
+            {
+                gfx.CopyFromScreen(Screen.PrimaryScreen.Bounds.X, Screen.PrimaryScreen.Bounds.Y, 0, 0, 
+                    Screen.PrimaryScreen.Bounds.Size, CopyPixelOperation.SourceCopy);
+            }
+            return image;
+        }
+
         private void PopulateNextWindow(List<WindowData> list, IntPtr hWnd, bool includeHidden)
         {
             var visible = NativeWinApi.IsWindowVisible(hWnd);
