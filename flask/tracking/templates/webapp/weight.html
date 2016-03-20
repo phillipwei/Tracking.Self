@@ -1,0 +1,75 @@
+{% extends '_base.html' %}
+
+{% block head %}
+{{ super() }}
+<script type="text/javascript" src="/static/d3.v3.js"></script>
+<script type="text/javascript" src="/static/moment.js"></script>
+<link href="/static/css/weight.css" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block body %}
+<div class='data_table'>
+</div>
+<div class='data_graph'>
+</div>
+{% endblock %}
+
+{% block script %}
+<script type="text/javascript">
+  function table(d) {
+    var tbl = d3.select(".data_table").selectAll(".data_entry")
+      .data(d)
+      .enter()
+      .append("div")
+      .attr("id", function(d) { return d.id; } )
+      .attr("class", "data_entry");
+      
+      
+    tbl.append("span")
+      .attr("class", "timestamp")
+      .text(function(d) { return moment(d.datetime).local().fromNow(); });
+    
+    tbl.append("span")
+      .attr("class", "qty")
+      .text(function(d) { return d.qty.toFixed(2); });
+    
+    tbl.append("span")
+      .attr("class", "unit")
+      .text(function(d) { return d.unit; });
+  }
+  
+  function graph(d) {
+    var w = 100, h = 100;
+    var g = d3.select(".data_graph")
+      .append('svg')
+      .attr('width', '100%')
+      .attr('height', '100%')
+      .attr('viewBox', '0 0 100 100')
+      .attr('preserveAspectRatio', 'none');
+      
+    var t = d.map(function(x) { return new Date(x.datetime).getTime(); });
+    var t_min = Math.min.apply(null, t);
+    var t_max = Math.max.apply(null, t);
+    
+    var q = d.map(function(x) { return x.qty; });
+    var q_min = Math.min.apply(null, q);
+    var q_max = Math.max.apply(null, q);
+    
+    var startTime = g.selectAll('circle')
+      .data(d)
+      .enter()
+      .append('circle')
+      .attr('cx', function(d) { return (new Date(d.datetime).getTime() - t_min) * w / (t_max - t_min); })
+      .attr('cy', function(d) { return h - (d.qty - q_min) * h / (q_max - q_min); })
+      .attr('r', 0.1);
+  }
+  
+  d3.json("/api/weight",
+    function(jsonData) {
+      table(jsonData.weight.reverse());
+      graph(jsonData.weight);
+    }
+  );
+  
+</script>
+{% endblock %}

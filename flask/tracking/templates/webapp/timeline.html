@@ -1,0 +1,185 @@
+{% extends '_base.html' %}
+
+{% block head %}
+{{ super() }}
+<script type="text/javascript" src="/static/jquery.mousewheel.js"></script>
+<link href="/static/css/timeline.css" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block body %}
+<div class="fit">
+  <header class="row">
+    <section id="timeline_wrapper">
+      <div id="loading_wrapper" class="hidden">
+        <div id="loading">
+          <div id="loading_inner">
+          </div>
+        </div>
+      </div>
+      <section id="timeline" class="hidden">
+        <div id="ticks">
+        </div>
+        <div id="colors">
+        </div>
+        <div id="current_position">
+          <span id="marker">
+          </span>
+          <span id="text">
+          </span>
+        </div>
+      </section>
+      <!--
+        <div id="colors">
+          {% for (c,time) in [("na",480), ("ok",90), ("good", 180)] -%}
+          <span class="color_segment {{c}}" style="width: {{time}}px"></span>
+          {%- endfor %}
+        </div>
+      -->
+    </section>
+  </header>
+  <section class="row expand">
+    <div class="content">
+      <section id="activity">
+        <img id="img" src="/static/img/activity_desktop.png">
+      </section>
+    </div>
+  </section>
+  <footer class="row">
+    <section id="menu">
+      <a class="button" href="{{url_for('user.logout')}}">Logout</a>
+    </section>
+  </footer>
+</div>
+{% endblock %}
+
+{% block script %}
+<script type="text/javascript">
+  $("#timeline").mousewheel(function(event, delta) {
+    this.scrollLeft -= (delta * 30);
+    event.preventDefault();
+  });
+  
+  
+  function set_load_pct(pct) {
+    $("#loading_inner").width(Math.min(Math.max(0, Math.round(pct * 100)), 100) + "%")
+  }
+  
+  // http://stackoverflow.com/questions/7293306/how-to-round-to-nearest-hour-using-javascript-date-object
+  function round_hour_up(date) {
+    console.log('rounding up ' + date);
+    date.setHours(date.getHours() + 1);
+    date.setMinutes(0);
+    date.setSeconds(0);
+    date.setMilliseconds(0);
+    return date;
+  }
+  
+  // http://stackoverflow.com/questions/2707790/get-a-css-value-from-external-style-sheet-with-javascript-jquery
+  function get_class_style(parent, element, style){
+    var $e = $(element).hide().appendTo(parent);
+    val = $e.css(style);
+    $e.remove();
+    return val;
+  }
+
+  var start, end;
+  var tick_width = parseInt(get_class_style('#ticks','<span class="hour_segment"></span>','width').replace('px',''));
+  console.log('tick width = ' + tick_width);
+  
+  function HH_to_hh(hours) {
+    mod = hours % 12;
+    return mod == 0 ? 12 : mod;
+  }
+  
+  function load_timeline() {
+    $('#loading_wrapper').removeClass('hidden');
+    
+    var now = new Date();
+    if(start == undefined || end == undefined) {
+      end = round_hour_up(now);
+      console.log('end = ' + end);
+      
+      // http://stackoverflow.com/questions/4943088/how-to-subtract-2-hours-from-users-local-time
+      hours = Math.ceil($(window).width() / tick_width);
+      console.log('hours = ' + hours);
+      start = new Date(end.getTime() - hours * 60 * 60 * 1000);
+      console.log('start = ' + start);
+      
+      for (var d = new Date(start); d <= end; d.setHours(d.getHours() + 1)) {
+        $('<span class="hour_segment">' + HH_to_hh(d.getHours()) + '</span>').appendTo('#ticks')
+      }
+      set_load_pct(0.1);
+      
+      url = "/api/query?start=" + start.toISOString() + "&end=" + end.toISOString();
+      console.log('getting = ' + url);
+      $.get(url, function(data) {
+        console.log(data);
+      });
+      set_load_pct(0.2);
+    }
+    
+    $('#timeline').removeClass('hidden');
+    $('#loading_wrapper').addClass('hidden');
+    
+  }
+  // http://stackoverflow.com/questions/2056555/c-sharp-sunrise-sunset-with-latitude-longitude
+  load_timeline();
+  
+  function date_to_hhmm() {
+    hours = d.getHours();
+    minutes = d.getMinutes();
+    return HH_to_hh(hours) + ':' + (minutes < 10 ? '0' + minutes : minutes) + ' ' + (hours < 12 ? 'AM' : 'PM');
+  }
+  
+  var adj = Math.round($('#current_position').width() / 2);  // point to div center
+  console.log('adj = ' + adj);
+  function set_time_pos(x) {
+    x = x + adj + $("#timeline").scrollLeft();
+    console.log('position = ' + x);
+    ms_offset = (-0.5 + x / tick_width) * (60 * 60 * 1000);
+    console.log('ms_offset = ' + ms_offset);
+    d = new Date(start.getTime() + ms_offset);
+    console.log('new time = ' + d);
+    $("#text").text(date_to_hhmm);
+    
+    /*
+    var i = Math.min(Math.max(0,Math.round(x / 100)),11);
+    var new_src = "/static/img/screenshot/" + i + ".bmp";
+    if($("#activity img").attr("src") != new_src) {
+      $("#activity img").attr("src", new_src);
+    }
+    $("#text").text(i + ":00 AM");
+    */
+  }
+  
+  /*
+  function set_time_pos(x) {
+    var cur_img = $("#activity img:not(.hidden)");
+    var new_img = $("#activity #img_" + Math.min(Math.max(0,Math.round(x / 100)),11));
+    if(cur_img != new_img) {
+      cur_img.addClass("hidden");
+      new_img.removeClass("hidden");
+    }
+  }
+  */
+
+  $("#current_position")
+    .mousedown(function(e) {
+      console.log('down');
+      var start_x = $(this).offset().left,
+        x = e.pageX;
+      $(window).mousemove(function(e2) {
+        var end_x = start_x + e2.pageX - x;
+        $('#current_position').offset({left: end_x});
+        set_time_pos(end_x);
+      });
+      e.preventDefault();
+    });
+  $(window).mouseup(function() {
+    $(window).off('mousemove');
+  });
+  
+  // onLoad
+  // onResize
+</script>
+{% endblock %}

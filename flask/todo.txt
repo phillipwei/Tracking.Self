@@ -1,0 +1,9 @@
+bugfix:
+* have time displayed in local?
+
+ideas:
+* forward certain emails to another account to be parsed out?
+ -- uber
+ -- paypal
+ -- mtg
+* 

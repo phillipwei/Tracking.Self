@@ -1,0 +1,13 @@
+@import "static";
+
+@mixin create_font($family, $filename, $style, $weight) {
+    font-family: $family;
+    src: url($static_url + '/fonts/'+$filename+'.eot');
+    src: 
+        url($static_url + '/fonts/'+$filename+'.eot?#iefix') format('embedded-opentype'),
+        url($static_url + '/fonts/'+$filename+'.svg') format('svg'),
+        url($static_url + '/fonts/'+$filename+'.woff') format('woff'),
+        url($static_url + '/fonts/'+$filename+'.otf') format('opentype');
+    font-style: $style;
+    font-weight: $weight;
+}

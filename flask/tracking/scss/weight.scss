@@ -1,0 +1,22 @@
+@import "base";
+
+.data_table {
+  width: 400px;
+  height: 100%;
+  overflow-y: auto;
+  float: left;
+  
+  font-family: consolas, monospace;
+  .data_entry {
+    margin: 0 2px;
+    .timestamp { width: 10em; display: inline-block; }
+    .qty       { padding-right: 0.5em;}
+  }
+}
+
+.data_graph {
+  border: 1px solid black;
+  height: 100%;
+  max-height: 500px;
+  overflow: hidden;
+}

@@ -1,0 +1,1 @@
+sass --watch tracking/scss:tracking/static/css

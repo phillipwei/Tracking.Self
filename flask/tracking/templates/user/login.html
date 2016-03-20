@@ -1,0 +1,17 @@
+{% from '_formhelpers.html' import render_field %}
+{% extends '_base.html' %}
+
+{% block head %}
+{{ super() }}
+<link href="/static/css/login.css" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block body %}
+<section id='login' class='absolutecenter'>
+  <form method='POST' action='{{ url_for("user.login") }}' name='login' spellcheck='false'>
+    {{ login.hidden_tag() }}
+    {{ login.password(autofocus="autofocus") }}
+    {{ login.submit }}
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,81 @@
+@import "vendors";
+@import "fonts";
+@import "static";
+
+$default_font: 'Source Sans Pro';
+$max_z: 9999;
+
+html, body {
+  font-family: $default_font, sans-serif;
+  height: 100%;
+  min-height: 100%;
+}
+
+.clearfix:before, .clearfix:after { 
+  content: "\0020"; 
+  display: block; 
+  height: 0; 
+  overflow: hidden; 
+}  
+.clearfix:after { clear: both; }  
+.clearfix { zoom: 1; }  
+
+.hidden {
+  display: none;
+}
+
+.absolutecenter {
+  margin: auto;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+}
+
+#flash {
+  height: 0;
+  position: fixed;
+  text-align: center;
+  top: 0.375em;
+  width: 100%;
+  z-index: $max_z;
+  ul {
+    @include border-radius(4px);
+    @include box-shadow(0 0 8px rgba(0,0,0,.15));
+    background-color: rgba(0,0,0,.03);
+    border: 1px solid #ccc;
+    display: inline-block;
+    list-style-type: none;
+    margin: 0;
+    padding: 0.625em 1em;
+  }
+  li {
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+  }
+  &.animate   { opacity: 0; }
+  &.animating { @include transition(all,1.5s,linear); }
+}
+
+input {
+  @include box-sizing(border-box);
+  background-color: transparent;
+  border: 1px solid black;
+  font-size: 24px;
+  padding: 10px 10px;
+  &[type="password"] {
+    letter-spacing: 7px;
+  }
+  &[type="submit"]:hover, &[type="button"]:hover {
+    background-color: #f7f7f7;
+  }
+  &[type="submit"]:active, &[type="button"]:active {
+    border-color: #888;
+    color: #888;
+  }
+}
+
+@media all and (max-width: 1080px) {
+  input {
+    font-size: 64px;
+  }
+}

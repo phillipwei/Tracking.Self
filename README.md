@@ -1,3 +1,7 @@
+# Todo #
+* Familiarize myself with the code base
+* Pull in pre-existing python/flask server
+
 # Goals #
 Software tools to help track:
 
